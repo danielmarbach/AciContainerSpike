@@ -35,4 +35,4 @@ jobs:
       with:
         azcliversion: 2.21.0
         inlineScript: |
-           az container delete --resource-group AciContainerSpike --name ${{ steps.setup-rabbit-mq.outputs.rabbitmq-instance }}
+           az container delete --resource-group AciContainerSpike --name ${{ steps.setup-rabbit-mq.outputs.rabbitmq-instance }} --yes
