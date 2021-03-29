@@ -25,9 +25,9 @@ jobs:
           rabbitmqinstance=rabbitmq$RANDOM${GITHUB_SHA:0:7}
           echo "::set-output name=rabbitmq-instance::$rabbitmqinstance"
           az container create --resource-group AciContainerSpike --name $rabbitmqinstance --image rabbitmq:3-management --dns-name-label $rabbitmqinstance --ports 5672 15672 --environment-variables RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_USER }} RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_PASSWORD }}
-          rabbitmqfqdn=az container show --resource-group AciContainerSpike --name $rabbitmqinstance --query "ipAddress.fqdn"
+          rabbitmqfqdn=$(az container show --resource-group AciContainerSpike --name $rabbitmqinstance --query "ipAddress.fqdn")
           echo "::add-mask::$rabbitmqfqdn"
-          echo "::set-output name=azureservicebus-connection-string::amqp://${{ secrets.RABBITMQ_USER }}:${{ secrets.RABBITMQ_PASSWORD }}@$rabbitmqfqdn"
+          echo "::set-output name=rabbitmq-connection-string::amqp://${{ secrets.RABBITMQ_USER }}:${{ secrets.RABBITMQ_PASSWORD }}@$rabbitmqfqdn"
           
     - name: Teardown RabbitMQ
       uses: azure/CLI@v1
