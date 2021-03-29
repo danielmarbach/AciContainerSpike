@@ -1,0 +1,41 @@
+name: CI
+
+on: [push]
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Setup RabbitMQ
+      id: setup-rabbit-mq
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.21.0
+        inlineScript: |
+          rabbitmqinstance=rabbitmq$RANDOM${GITHUB_SHA:0:7}
+          echo "::set-output name=rabbitmq-instance::$rabbitmqinstance"
+          az container create --resource-group AciContainerSpike --name $rabbitmqinstance --image rabbitmq:3-management --dns-name-label $rabbitmqinstance --ports 5672 15672 --environment-variables RABBITMQ_DEFAULT_USER=${{ secrets.RABBITMQ_USER }} RABBITMQ_DEFAULT_PASS=${{ secrets.RABBITMQ_PASSWORD }}
+          rabbitmqfqdn=az container show --resource-group AciContainerSpike --name $rabbitmqinstance --query "ipAddress.fqdn"
+          echo "::add-mask::$rabbitmqfqdn"
+          echo "::set-output name=azureservicebus-connection-string::amqp://${{ secrets.RABBITMQ_USER }}:${{ secrets.RABBITMQ_PASSWORD }}@$rabbitmqfqdn"
+          
+    - name: Teardown RabbitMQ
+      uses: azure/CLI@v1
+      if: ${{ always() }}
+      with:
+        azcliversion: 2.21.0
+        inlineScript: |
+           az container delete --resource-group AciContainerSpike --name ${{ steps.setup-rabbit-mq.outputs.rabbitmq-instance }}
+          az container delete --resource-group AciContainerSpike --name mycontainer
+        inlineScript: |
+          az servicebus namespace delete --name ${{ steps.setup-asb-namespace.outputs.azureservicebus-namespace }} --resource-group AzureServiceBusGithubActionsTest
