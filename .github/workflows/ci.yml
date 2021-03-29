@@ -16,7 +16,7 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
     
-    - name: Setup RabbitMQ
+    - name: Setup RabbitMQ 
       id: setup-rabbit-mq
       uses: azure/CLI@v1
       with:
