@@ -36,6 +36,3 @@ jobs:
         azcliversion: 2.21.0
         inlineScript: |
            az container delete --resource-group AciContainerSpike --name ${{ steps.setup-rabbit-mq.outputs.rabbitmq-instance }}
-          az container delete --resource-group AciContainerSpike --name mycontainer
-        inlineScript: |
-          az servicebus namespace delete --name ${{ steps.setup-asb-namespace.outputs.azureservicebus-namespace }} --resource-group AzureServiceBusGithubActionsTest
