@@ -26,8 +26,8 @@ jobs:
         inlineScript: |
           sqlinstance=sql$RANDOM${GITHUB_SHA:0:7}
           echo "::set-output name=sqlinstance-instance::$sqlinstance"
-          az container create --resource-group SomeResourceGroup --name $sqlinstance --image microsoft/mssql-server-windows-developer --dns-name-label $sqlinstance --ports 1433 --environment-variables ACCEPT_EULA=Y SA_PASSWORD=${{ secrets.SQL_PASSWORD }}
-          sqlfqdn=$(az container show --resource-group SomeResourceGroup --name $sqlinstance --query "ipAddress.fqdn")
+          az container create --resource-group AciContainerSpike --name $sqlinstance --image microsoft/mssql-server-windows-developer --dns-name-label $sqlinstance --ports 1433 --environment-variables ACCEPT_EULA=Y SA_PASSWORD=${{ secrets.SQL_PASSWORD }}
+          sqlfqdn=$(az container show --resource-group AciContainerSpike --name $sqlinstance --query "ipAddress.fqdn")
           echo "::add-mask::$sqlfqdn"
           echo "::set-output name=sql-connection-string::Server=$sqlfqdn;Database=nservicebus;User Id=sa;Password=${{ secrets.SQL_PASSWORD }};"
           
@@ -37,4 +37,4 @@ jobs:
       with:
         azcliversion: 2.21.0
         inlineScript: |
-           az container delete --resource-group SomeResourceGroup --name ${{ steps.setup-sql-server.outputs.sqlinstance-instance }} --yes
+           az container delete --resource-group AciContainerSpike --name ${{ steps.setup-sql-server.outputs.sqlinstance-instance }} --yes
