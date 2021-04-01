@@ -29,7 +29,7 @@ jobs:
           az container create --resource-group SomeResourceGroup --name $sqlinstance --image microsoft/mssql-server-windows-developer --dns-name-label $sqlinstance --ports 1433 --environment-variables ACCEPT_EULA=Y SA_PASSWORD=${{ secrets.SQL_PASSWORD }}
           sqlfqdn=$(az container show --resource-group SomeResourceGroup --name $sqlinstance --query "ipAddress.fqdn")
           echo "::add-mask::$sqlfqdn"
-          echo "::set-output name=sql-connection-string::Server=$sqlfqdn;Database=nservicebus;User Id=sa;Password=${{ secrets.SQL_PASSWORD };"
+          echo "::set-output name=sql-connection-string::Server=$sqlfqdn;Database=nservicebus;User Id=sa;Password=${{ secrets.SQL_PASSWORD }};"
           
     - name: Teardown SQL Server
       uses: azure/CLI@v1
