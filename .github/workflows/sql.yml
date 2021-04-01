@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  workflow_dispatch:
+    inputs:
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+jobs:
+
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Setup SQL Server 
+      id: setup-sql-server
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.21.0
+        inlineScript: |
+          sqlinstance=sql$RANDOM${GITHUB_SHA:0:7}
+          echo "::set-output name=sqlinstance-instance::$sqlinstance"
+          az container create --resource-group SomeResourceGroup --name $sqlinstance --image microsoft/mssql-server-windows-developer --dns-name-label $sqlinstance --ports 1433 --environment-variables ACCEPT_EULA=Y SA_PASSWORD=${{ secrets.SQL_PASSWORD }}
+          sqlfqdn=$(az container show --resource-group SomeResourceGroup --name $sqlinstance --query "ipAddress.fqdn")
+          echo "::add-mask::$sqlfqdn"
+          echo "::set-output name=sql-connection-string::Server=$sqlfqdn;Database=nservicebus;User Id=sa;Password=${{ secrets.SQL_PASSWORD };"
+          
+    - name: Teardown SQL Server
+      uses: azure/CLI@v1
+      if: ${{ always() }}
+      with:
+        azcliversion: 2.21.0
+        inlineScript: |
+           az container delete --resource-group SomeResourceGroup --name ${{ steps.setup-sql-server.outputs.sqlinstance-instance }} --yes
